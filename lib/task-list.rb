@@ -1,7 +1,5 @@
 require "task-list/version"
 
-module Task
-  module List
-    # Your code goes here...
-  end
+module TaskList
+  # Your code goes here...
 end

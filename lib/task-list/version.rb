@@ -1,5 +1,3 @@
-module Task
-  module List
-    VERSION = "0.0.1"
-  end
+module TaskList
+  VERSION = "0.0.1"
 end
