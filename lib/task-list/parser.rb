@@ -1,6 +1,6 @@
 module TaskList
   class Parser
-    attr_reader :files
+    attr_reader :files, :valid_tasks, :tasks
 
     def initialize(*args)
       validate args
@@ -10,10 +10,21 @@ module TaskList
 
       # Get the list of valid tasks
       @valid_tasks = get_valid_tasks
+
+      # Initialize the tasks hash
+      @tasks = initialize_tasks_hash
     end
 
-    def parse
-      puts "Parsing..."
+    # Parse all the collected files to find tasks
+    # and populate the @tasks hash
+    def parse(type = nil)
+      unless type.nil? || (type.is_a?(Symbol) && @valid_tasks.has_key?(type))
+        raise ArgumentError
+      end
+
+      @files.each do |file|
+        parsef file, type
+      end
     end
 
     private
@@ -60,6 +71,41 @@ module TaskList
       end
 
       tasks
+    end
+
+    # Initialize the tasks hash
+    def initialize_tasks_hash
+      tasks = {}
+      @valid_tasks.each do |task, regex|
+        tasks[task] = []
+      end
+
+      tasks
+    end
+
+    # Parse a file to find tasks
+    def parsef(file, type = nil)
+      valid_tasks = (type.nil?) ? @valid_tasks : @valid_tasks.select { |k,v| k == type }
+
+      File.open(file, "r") do |f|
+        line_number = 1
+        while line = f.gets
+          valid_tasks.each do |type, regex|
+            result = line.match regex
+            unless result.nil?
+              task = {
+                file: file,
+                line_number: line_number,
+                task: result.to_a.last
+              }
+
+              @tasks[type] << task
+            end
+          end
+
+          line_number += 1
+        end
+      end
     end
   end
 end
