@@ -4,7 +4,7 @@ require "task-list/version"
 
 Gem::Specification.new do |s|
   s.name        = "task-list"
-  s.version     = Task::List::VERSION
+  s.version     = TaskList::VERSION
   s.authors     = ["Aziz Light"]
   s.email       = ["aziz@azizlight.me"]
   s.homepage    = ""
