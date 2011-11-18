@@ -5,7 +5,15 @@ module TaskList
     def initialize(*args)
       validate args
 
+      # Get the list of files
       @files = collect args
+
+      # Get the list of valid tasks
+      @valid_tasks = get_valid_tasks
+    end
+
+    def parse
+      puts "Parsing..."
     end
 
     private
@@ -26,6 +34,8 @@ module TaskList
       end
     end
 
+    # Take the args, which are files/folders list,
+    # and create a list of all the files to parse
     def collect(args)
       files = []
       args.each do |arg|
@@ -35,6 +45,21 @@ module TaskList
       end
 
       files.flatten.uniq.delete_if { |file| File.directory?(file) }
+    end
+
+    # Get the valid tasks and their regex
+    # from the config/valid_tasks.yml YAML file
+    def get_valid_tasks
+      tasks = {}
+
+      shit = YAML::load(File.open("config/valid_tasks.yml"))
+      shit.each do |crap|
+        crap.each do |task, regex|
+          tasks[task] = regex
+        end
+      end
+
+      tasks
     end
   end
 end
