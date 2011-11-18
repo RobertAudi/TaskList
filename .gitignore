@@ -1,0 +1,34 @@
+*.gem
+.bundle
+Gemfile.lock
+pkg/*
+
+*.rbc
+.config
+coverage
+InstalledFiles
+lib/bundler/man
+rdoc
+spec/reports
+test/tmp
+test/version_tmp
+tmp
+
+# YARD artifacts
+.yardoc
+_yardoc
+doc/
+
+.DS_Store
+
+# Thumbnails
+._*
+
+# Files that might appear on external disk
+.Spotlight-V100
+.Trashes
+
+.*.sw[a-z]
+*.un~
+Session.vim
+NERD_tree*
