@@ -18,7 +18,7 @@ TaskList is provided as a gem, so the installation process is as simple as this:
 
     % [sudo] gem install task-list
 
-> **Note**: `%` is the prompt and sudo (without the square brackets) is not needed if you use RVM.
+> **Note**: `%` is the prompt and `sudo` (without the square brackets) is not needed if you use RVM.
 
 Features:
 ---------
@@ -34,7 +34,7 @@ As stated above, TaskList lists code tags that it finds in code passed to it. He
 - `XXX`
 - `!!!`
 
-Also, TaskList will ignore the files that are under a `config` folder or under a `coverage` folder.
+Also, TaskList will ignore the files that are under certain folders like `log` or `coverage`. Finally, TaskList will ignore files with certain extensions like images and SQLite databases.
 
 Usage:
 ------
