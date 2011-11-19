@@ -7,7 +7,7 @@ Gem::Specification.new do |s|
   s.version     = TaskList::VERSION
   s.authors     = ["Aziz Light"]
   s.email       = ["aziz@azizlight.me"]
-  s.homepage    = ""
+  s.homepage    = "https://github.com/AzizLight/TaskList"
   s.summary     = %q{Code tasks parser and lister}
   s.description = %q{TaskList parses source code to find code tags and list them in a terminal. See README.md for more info.}
 
