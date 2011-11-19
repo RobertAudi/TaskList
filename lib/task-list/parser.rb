@@ -1,12 +1,15 @@
 module TaskList
   class Parser
-    attr_reader :files, :valid_tasks, :tasks
+    attr_reader :files, :tasks
 
     def initialize(*args)
       validate args
 
       # Get the list of files
       @files = collect args
+
+      # Setup the absolute path to the config folder
+      @config_folder = File.realpath(File.dirname(__FILE__) + "/../../config")
 
       # Get the list of valid tasks
       @valid_tasks = get_valid_tasks
@@ -81,7 +84,7 @@ module TaskList
     def get_valid_tasks
       tasks = {}
 
-      shit = YAML::load(File.open("config/valid_tasks.yml"))
+      shit = YAML::load(File.open(@config_folder + "/valid_tasks.yml"))
       shit.each do |crap|
         crap.each do |task, regex|
           tasks[task] = regex
@@ -94,7 +97,7 @@ module TaskList
     # Get the list of excluded folders and their regex
     # from the config/excluded_folders.yml YAML file
     def get_excluded_folders
-      YAML::load(File.open("config/excluded_folders.yml"))
+      YAML::load(File.open(@config_folder + "/excluded_folders.yml"))
     end
 
     # Initialize the tasks hash
