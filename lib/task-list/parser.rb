@@ -38,7 +38,7 @@ module TaskList
           tasks.each do |task|
             puts task[:task]
             # CHANGED: Colors are now always enabled.
-            # Without colors the output is unreadable
+            # Without colors the output is unreadable.
             puts "  \e[30m\e[1mline #{task[:line_number]} in #{task[:file]}\e[0m"
           end
         end
