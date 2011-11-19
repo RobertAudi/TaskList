@@ -1,4 +1,3 @@
-require "pp"
 require "yaml"
 
 require_relative "task-list/version"
