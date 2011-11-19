@@ -34,6 +34,8 @@ As stated above, TaskList lists code tags that it finds in code passed to it. He
 - `XXX`
 - `!!!`
 
+Also, TaskList will ignore the files that are under a `config` folder or under a `coverage` folder.
+
 Usage:
 ------
 
