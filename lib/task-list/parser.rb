@@ -11,6 +11,9 @@ module TaskList
       # Get the list of valid tasks
       @valid_tasks = get_valid_tasks
 
+      # Get excluded folders
+      @excluded_folders = get_excluded_folders
+
       # Initialize the tasks hash
       @tasks = initialize_tasks_hash
     end
@@ -24,6 +27,20 @@ module TaskList
 
       @files.each do |file|
         parsef file, type
+      end
+    end
+
+    def print
+      @tasks.each do |type, tasks|
+        unless tasks.empty?
+          puts "\n#{type}:\n-----\n"
+          tasks.each do |task|
+            puts task[:task]
+            # CHANGED: Colors are now always enabled.
+            # Without colors the output is unreadable
+            puts "  \e[30m\e[1mline #{task[:line_number]} in #{task[:file]}\e[0m"
+          end
+        end
       end
     end
 
@@ -73,6 +90,12 @@ module TaskList
       tasks
     end
 
+    # Get the list of excluded folders and their regex
+    # from the config/excluded_folders.yml YAML file
+    def get_excluded_folders
+      YAML::load(File.open("config/excluded_folders.yml"))
+    end
+
     # Initialize the tasks hash
     def initialize_tasks_hash
       tasks = {}
@@ -85,6 +108,11 @@ module TaskList
 
     # Parse a file to find tasks
     def parsef(file, type = nil)
+      # Don't parse files that are in excluded folders!
+      @excluded_folders.each do |regex|
+        return if file =~ /#{regex}/
+      end
+
       valid_tasks = (type.nil?) ? @valid_tasks : @valid_tasks.select { |k,v| k == type }
 
       File.open(file, "r") do |f|

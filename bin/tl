@@ -6,6 +6,7 @@ require_relative "../lib/task-list"
 time = Benchmark.realtime do
   parser = TaskList::Parser.new(*ARGV)
   parser.parse
+  parser.print
 end
 
 puts "\n" + ("-" * 30) + "\nTime elapsed: #{time * 1000} milliseconds"
