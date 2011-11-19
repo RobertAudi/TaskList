@@ -33,7 +33,8 @@ module TaskList
     def print
       @tasks.each do |type, tasks|
         unless tasks.empty?
-          puts "\n#{type}:\n-----\n"
+          puts "\n#{type}:\n#{'-' * (type.length + 1)}\n"
+
           tasks.each do |task|
             puts task[:task]
             # CHANGED: Colors are now always enabled.
