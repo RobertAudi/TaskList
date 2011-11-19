@@ -1,0 +1,11 @@
+---
+- '.jpg'
+- '.jpeg'
+- '.png'
+- '.gif'
+- '.svg'
+- '.sqlite3'
+- '.log'
+- '.rbc'
+- '.sassc'
+- '.gem'

@@ -1,3 +1,6 @@
 ---
 - '\/coverage\/'
 - '\/config\/'
+- '\/tmp\/'
+- '\/cache\/'
+- '\/logs?\/'

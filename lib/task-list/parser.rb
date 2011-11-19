@@ -119,25 +119,41 @@ module TaskList
 
       valid_tasks = (type.nil?) ? @valid_tasks : @valid_tasks.select { |k,v| k == type }
 
-      File.open(file, "r") do |f|
-        line_number = 1
-        while line = f.gets
-          valid_tasks.each do |type, regex|
-            result = line.match regex
-            unless result.nil?
-              task = {
-                file: file,
-                line_number: line_number,
-                task: result.to_a.last
-              }
+      unless ignore?(file)
+        File.open(file, "r") do |f|
+          line_number = 1
+          while line = f.gets
+            valid_tasks.each do |type, regex|
+              begin
+                result = line.match regex
+              rescue ArgumentError
+                # NOTE: Some files like .DS_Store are not filtered by the ignore? method...
+                return
+              end
 
-              @tasks[type] << task
+              unless result.nil?
+                task = {
+                  file: file,
+                  line_number: line_number,
+                  task: result.to_a.last
+                }
+
+                @tasks[type] << task
+              end
             end
-          end
 
-          line_number += 1
+            line_number += 1
+          end
         end
       end
+    end
+
+    # Should a file be ignored?
+    # Some files, like images or SQLite databases, are not meant to be parsed
+    def ignore?(file)
+      # Get the list of file extensions to ignore
+      extensions = YAML::load(File.open(@config_folder + "/excluded_extensions.yml"))
+      extensions.include?(File.extname(file))
     end
   end
 end
