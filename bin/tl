@@ -2,6 +2,23 @@
 
 require_relative "../lib/task-list"
 
-parser = TaskList::Parser.new(*ARGV)
+args = []
+if ARGV.empty?
+  puts "Do you want to list the tasks that are under the current directory?"
+  print "[Yes|No] "
+  answer = $stdin.gets.chomp
+
+  answer = answer.split(//)
+  answer = answer.empty? ? [""] : [answer.fetch(0).downcase]
+  if answer.fetch(0) == "y"
+    args = ["."]
+  else
+    exit
+  end
+else
+  args = ARGV
+end
+
+parser = TaskList::Parser.new(*args)
 parser.parse
 parser.print
