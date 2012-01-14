@@ -1,6 +1,5 @@
 #!/usr/bin/env ruby
 
-require "benchmark"
 require_relative "../lib/task-list"
 
 parser = TaskList::Parser.new(*ARGV)
