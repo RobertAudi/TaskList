@@ -1,6 +1,24 @@
 #!/usr/bin/env ruby
 
+require "optparse"
 require_relative "../lib/task-list"
+
+optparse = OptionParser.new do |opts|
+  opts.banner = "Usage: tl directory"
+  opts.separator ""
+
+  opts.on("-v", "--version", "Shows the version of the Number Converter.") do
+    puts TaskList::VERSION
+    exit
+  end
+
+  opts.on("-h", "--help", "Show some usage help.") do
+    puts opts
+    exit
+  end
+end
+
+optparse.parse!
 
 args = []
 if ARGV.empty?
@@ -13,6 +31,8 @@ if ARGV.empty?
   if answer.fetch(0) == "y"
     args = ["."]
   else
+    $stdout.puts "\n"
+    $stdout.puts optparse
     exit
   end
 else
