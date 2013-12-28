@@ -1,159 +1,194 @@
+require "find"
+
 module TaskList
   class Parser
     attr_reader :files, :tasks
 
-    def initialize(*args)
-      validate args
-
-      # Get the list of files
-      @files = collect args
-
-      # Setup the absolute path to the config folder
-      @config_folder = File.realpath(File.dirname(__FILE__) + "/../../config")
-
-      # Get the list of valid tasks
-      @valid_tasks = get_valid_tasks
-
-      # Get excluded folders
-      @excluded_folders = get_excluded_folders
-
-      # Initialize the tasks hash
-      @tasks = initialize_tasks_hash
+    def initialize(arguments: [], options: {})
+      @type = options[:type].upcase if options[:type]
+      # @files = fuzzy_find_files queries: arguments unless arguments.empty?
+      @files = fuzzy_find_files queries: arguments
+      @tasks = {}
+      VALID_TASKS.each { |t| @tasks[t.to_sym] = [] }
     end
 
     # Parse all the collected files to find tasks
-    # and populate the @tasks hash
-    def parse(type = nil)
-      unless type.nil? || (type.is_a?(Symbol) && @valid_tasks.has_key?(type))
-        raise ArgumentError
+    # and populate the tasks hash
+    def parse!
+      unless @type.nil? || VALID_TASKS.include?(@type)
+        raise TaskList::Exceptions::InvalidTaskTypeError.new type: @type
       end
 
-      @files.each do |file|
-        parsef file, type
-      end
+      @files.each { |f| parsef! file: f }
     end
 
-    def print
+    def print!
       @tasks.each do |type, tasks|
         unless tasks.empty?
-          puts "\n#{type}:\n#{'-' * (type.length + 1)}\n"
+          puts "#{type}:\n#{'-' * (type.length + 1)}\n"
 
           tasks.each do |task|
             puts task[:task]
-            # CHANGED: Colors are now always enabled.
-            # Without colors the output is unreadable.
             puts "  \e[30m\e[1mline #{task[:line_number]} in #{task[:file]}\e[0m"
           end
+
+          puts
         end
       end
     end
 
     private
 
-    # Validate the argument passed to the parser's controller.
-    # The argument must be a String and a valid file/folder path (relative or absolute).
-    def validate(args)
-      raise ArgumentError unless args.is_a?(Array) && args.any?
+    def fuzzy_find_files(queries: [])
+      patterns = regexify queries
 
-      args.each do |arg|
-        unless arg.is_a? String
-          raise ArgumentError, "The argument passed to the parser's constructor must be a String"
+      paths = []
+      # FIXME: Search in the root of a project if in a git repo
+      Find.find('.') do |path|
+        paths << path unless FileTest.directory?(path)
+      end
+
+      paths.map! { |p| p.gsub /\A\.\//, "" }
+
+      EXCLUDED_DIRECTORIES.each do |d|
+        paths.delete_if { |p| p =~ /\A#{Regexp.escape(d)}/ }
+      end
+
+      EXCLUDED_EXTENSIONS.each do |e|
+        paths.delete_if { |p| File.file?(p) && File.extname(p) =~ /\A#{Regexp.escape(e)}/ }
+      end
+
+      EXCLUDED_GLOBS.each do |g|
+        paths.delete_if { |p| p =~ /#{unglobify(g)}/ }
+      end
+
+      if queries.empty?
+        paths
+      else
+        results = []
+
+        patterns.each do |pattern|
+          paths.each do |path|
+            matches = path.match(/#{pattern}/).to_a
+
+            results << path unless matches.empty?
+          end
         end
 
-        unless File.file?(arg) || File.directory?(arg)
-          raise ArgumentError, "The argument passed to the parse's constructor must be either a file or a folder"
+        results
+      end
+    end
+
+    def regexify(queries)
+      patterns = []
+
+      queries.each do |query|
+        if query.include?("/")
+          pattern = query.split("/").map { |p| p.split("").join(")[^\/]*?(").prepend("[^\/]*?(") + ")[^\/]*?" }.join("\/")
+          pattern << "\/" if query[-1] == "/"
+        else
+          pattern = query.split("").join(").*?(").prepend(".*?(") + ").*?"
         end
-      end
-    end
 
-    # Take the args, which are files/folders list,
-    # and create a list of all the files to parse
-    def collect(args)
-      files = []
-      args.each do |arg|
-        %w[**/* **/*.* **/.*].each do |glob|
-          files << Dir.glob("#{arg}/#{glob}")
-        end
+        patterns << pattern
       end
 
-      files.flatten.uniq.delete_if { |file| File.directory?(file) }
+      patterns
     end
 
-    # Get the valid tasks and their regex
-    # from the config/valid_tasks.yml YAML file
-    def get_valid_tasks
-      tasks = {}
+    # NOTE: This is actually a glob-to-regex method
+    def unglobify(glob)
+      chars = glob.split("")
 
-      shit = YAML::load(File.open(@config_folder + "/valid_tasks.yml"))
-      shit.each do |crap|
-        crap.each do |task, regex|
-          tasks[task] = regex
-        end
-      end
+      chars = smoosh(chars)
 
-      tasks
-    end
+      curlies = 0
+      escaping = false
+      string = chars.map do |char|
+        if escaping
+          escaping = false
+          char
+        else
+          case char
+            when "**"
+              "([^/]+/)*"
+            when '*'
+              ".*"
+            when "?"
+              "."
+            when "."
+              "\."
 
-    # Get the list of excluded folders and their regex
-    # from the config/excluded_folders.yml YAML file
-    def get_excluded_folders
-      YAML::load(File.open(@config_folder + "/excluded_folders.yml"))
-    end
-
-    # Initialize the tasks hash
-    def initialize_tasks_hash
-      tasks = {}
-      @valid_tasks.each do |task, regex|
-        tasks[task] = []
-      end
-
-      tasks
-    end
-
-    # Parse a file to find tasks
-    def parsef(file, type = nil)
-      # Don't parse files that are in excluded folders!
-      @excluded_folders.each do |regex|
-        return if file =~ /#{regex}/
-      end
-
-      valid_tasks = (type.nil?) ? @valid_tasks : @valid_tasks.select { |k,v| k == type }
-
-      unless ignore?(file)
-        File.open(file, "r") do |f|
-          line_number = 1
-          while line = f.gets
-            valid_tasks.each do |type, regex|
-              begin
-                result = line.match regex
-              rescue ArgumentError
-                # NOTE: Some files like .DS_Store are not filtered by the ignore? method...
-                return
+            when "{"
+              curlies += 1
+              "("
+            when "}"
+              if curlies > 0
+                curlies -= 1
+                ")"
+              else
+                char
               end
-
-              unless result.nil?
-                task = {
-                  file: file,
-                  line_number: line_number,
-                  task: result.to_a.last
-                }
-
-                @tasks[type] << task
+            when ","
+              if curlies > 0
+                "|"
+              else
+                char
               end
-            end
-
-            line_number += 1
+            when "\\"
+              escaping = true
+              "\\"
+            else
+              char
           end
         end
       end
+
+      '(\A|\/)' + string.join + '\Z'
     end
 
-    # Should a file be ignored?
-    # Some files, like images or SQLite databases, are not meant to be parsed
-    def ignore?(file)
-      # Get the list of file extensions to ignore
-      extensions = YAML::load(File.open(@config_folder + "/excluded_extensions.yml"))
-      extensions.include?(File.extname(file))
+    def smoosh(chars)
+      out = []
+
+      until chars.empty?
+        char = chars.shift
+
+        if char == "*" && chars.first == "*"
+          chars.shift
+          chars.shift if chars.first == "/"
+          out.push("**")
+        else
+          out.push(char)
+        end
+      end
+
+      out
+    end
+
+    # Parse a file to find tasks
+    def parsef!(file: "")
+      types = @type ? [@type] : VALID_TASKS
+
+      File.open(file, "r") do |f|
+        line_number = 1
+        while line = f.gets
+          types.each do |type|
+            result = line.match /#{Regexp.escape(type)}[\s,:-]+(\S.*)\Z/
+
+            unless result.nil?
+              task = {
+                file: file,
+                line_number: line_number,
+                task: result.to_a.last
+              }
+
+              @tasks[type.to_sym] << task
+            end
+          end
+
+          line_number += 1
+        end
+      end
     end
   end
 end

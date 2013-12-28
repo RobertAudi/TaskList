@@ -1,9 +1,0 @@
----
-- :TODO: 'TODO[\s,:-]+(\S.*)$'
-- :FIXME: 'FIX ?ME[\s,:-]+(\S.*)$'
-- :NOTE: 'NOTE[\s,:-]+(\S.*)$'
-- :BUG: 'BUG[\s,:-]+(\S.*)$'
-- :CHANGED: 'CHANGED[\s,:-]+(\S.*)$'
-- :OPTIMIZE: 'OPTIMIZE[\s,:-]+(\S.*)$'
-- :XXX: 'XXX[\s,:-]+(\S.*)$'
-- :!!!: '!!![\s,:-]+(\S.*)$'
