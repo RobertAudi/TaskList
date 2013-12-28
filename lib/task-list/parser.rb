@@ -173,7 +173,7 @@ module TaskList
         line_number = 1
         while line = f.gets
           types.each do |type|
-            result = line.match /#{Regexp.escape(type)}[\s,:-]+(\S.*)\Z/
+            result = line.match /#{Regexp.escape(type)}[\s,:-]+(\S.*)\Z/ rescue nil
 
             unless result.nil?
               task = {
