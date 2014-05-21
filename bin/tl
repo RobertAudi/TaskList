@@ -8,6 +8,10 @@ options = {}
 OptionParser.new do |opts|
   opts.banner = "Usage: tl [<query>] [<option> ...]"
 
+  opts.on("-p", "--plain", "No colours in the output") do
+    options[:plain] = true
+  end
+
   opts.on("-t", "--type", "Type of tasks to list") do |o|
     options[:type] = o
   end

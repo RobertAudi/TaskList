@@ -5,8 +5,8 @@ module TaskList
     attr_reader :files, :tasks
 
     def initialize(arguments: [], options: {})
+      @plain = options[:plain] if options[:plain]
       @type = options[:type].upcase if options[:type]
-      # @files = fuzzy_find_files queries: arguments unless arguments.empty?
       @files = fuzzy_find_files queries: arguments
       @tasks = {}
       VALID_TASKS.each { |t| @tasks[t.to_sym] = [] }
@@ -29,12 +29,21 @@ module TaskList
 
           tasks.each do |task|
             puts task[:task]
-            puts "  \e[30m\e[1mline #{task[:line_number]} in #{task[:file]}\e[0m"
+
+            if self.plain?
+              puts "  line #{task[:line_number]} in #{task[:file]}"
+            else
+              puts "  \e[30m\e[1mline #{task[:line_number]} in #{task[:file]}\e[0m"
+            end
           end
 
           puts
         end
       end
+    end
+
+    def plain?
+      !!@plain
     end
 
     private
@@ -48,7 +57,7 @@ module TaskList
         paths << path unless FileTest.directory?(path)
       end
 
-      paths.map! { |p| p.gsub /\A\.\//, "" }
+      paths.map! { |p| p.gsub(/\A\.\//, "") }
 
       EXCLUDED_DIRECTORIES.each do |d|
         paths.delete_if { |p| p =~ /\A#{Regexp.escape(d)}/ }
@@ -173,7 +182,7 @@ module TaskList
         line_number = 1
         while line = f.gets
           types.each do |type|
-            result = line.match /#{Regexp.escape(type)}[\s,:-]+(\S.*)\Z/ rescue nil
+            result = line.match(/#{Regexp.escape(type)}[\s,:-]+(\S.*)\Z/) rescue nil
 
             unless result.nil?
               task = {

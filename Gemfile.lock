@@ -1,25 +1,14 @@
 PATH
   remote: .
   specs:
-    task-list (0.1)
+    task-list (0.3)
 
 GEM
   remote: http://rubygems.org/
   specs:
-    guard (0.8.8)
-      thor (~> 0.14.6)
-    guard-minitest (0.4.0)
-      guard (~> 0.4)
-    rb-fsevent (0.4.3.1)
-    ruby_gntp (0.3.4)
-    thor (0.14.6)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
-  guard
-  guard-minitest
-  rb-fsevent
-  ruby_gntp
   task-list!
