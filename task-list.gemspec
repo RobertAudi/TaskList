@@ -10,6 +10,7 @@ Gem::Specification.new do |s|
   s.homepage    = "https://github.com/AzizLight/TaskList"
   s.summary     = %q{Code tasks parser and lister}
   s.description = %q{TaskList parses source code to find code tags and list them in a terminal. See README.md for more info.}
+  s.license     = "MIT"
 
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
