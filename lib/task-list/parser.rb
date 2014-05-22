@@ -61,7 +61,7 @@ module TaskList
       patterns = regexify queries
 
       paths = []
-      Find.find(self.search_path) do |path|
+      Find.find(File.expand_path(self.search_path)) do |path|
         paths << path unless FileTest.directory?(path)
       end
 
