@@ -8,6 +8,10 @@ options = {}
 OptionParser.new do |opts|
   opts.banner = "Usage: tl [<query>] [<option> ...]"
 
+  opts.on("-g", "--github", "Format for Github (plain option is inferred)") do
+    options[:github] = true
+  end
+
   opts.on("-p", "--plain", "No colours in the output") do
     options[:plain] = true
   end

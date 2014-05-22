@@ -1,11 +1,13 @@
 require "find"
+require "pathname"
 
 module TaskList
   class Parser
-    attr_reader :files, :tasks, :search_path
+    attr_reader :files, :tasks, :search_path, :github
 
     def initialize(arguments: [], options: {})
       self.search_path = options[:search_path]
+      @github = options[:github] if options[:github]
       @plain = options[:plain] if options[:plain]
       @type = options[:type].upcase if options[:type]
       @files = fuzzy_find_files queries: arguments
@@ -36,19 +38,65 @@ module TaskList
         unless tasks.empty?
           puts "#{type}:\n#{'-' * (type.length + 1)}\n"
 
-          tasks.each do |task|
-            puts task[:task]
+          if self.github? || self.plain?
+            puts
+          end
 
-            if self.plain?
-              puts "  line #{task[:line_number]} in #{task[:file]}"
+          tasks.each do |task|
+            if self.github?
+              if Pathname.new(self.search_path).absolute?
+                reference = "#{task[:file].sub(/#{Regexp.escape(self.git_repo_root)}\//, "")}#L#{task[:line_number]}"
+              else
+                search_path_components = File.expand_path(self.search_path).split(File::SEPARATOR)
+                search_path_components.pop
+                parent = File.join(*search_path_components)
+                file = task[:file].sub(/#{Regexp.escape(parent)}\//, "")
+                reference = "#{file}#L#{task[:line_number]}"
+              end
+
+              puts "- #{task[:task]} &mdash; [#{reference}](#{reference})"
             else
-              puts "  \e[30m\e[1mline #{task[:line_number]} in #{task[:file]}\e[0m"
+              puts task[:task]
+
+              if self.plain?
+                puts "  line #{task[:line_number]} in #{task[:file]}"
+              else
+                puts "  \e[30m\e[1mline #{task[:line_number]} in #{task[:file]}\e[0m"
+              end
             end
           end
 
           puts
         end
       end
+    end
+
+    def git_repo_root
+      full_search_path = File.expand_path(self.search_path)
+      root_path = full_search_path.dup
+      repo_found = false
+
+      begin
+        if File.directory?(File.join(root_path, ".git"))
+          repo_found = true
+          break
+        end
+
+        directories = root_path.split(File::SEPARATOR)
+        directories.pop
+        root_path = File.join(*directories)
+      end until repo_found
+
+      unless repo_found
+        # FIXME: Show an error message instead of raising an exception
+        raise "No git repo found."
+      end
+
+      root_path
+    end
+
+    def github?
+      !!@github
     end
 
     def plain?
