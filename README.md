@@ -73,7 +73,7 @@ Contributing
 2. Create a branch (git checkout -b awesome-feature)
 3. Commit your changes (git commit -am "Add AWESOME feature")
 4. Push to the branch (git push origin awesome-feature)
-5. Open a [Pull Request](https://github.com/RobertAudi/task-list/pulls)
+5. Open a [Pull Request](https://github.com/RobertAudi/TaskList/pulls)
 
 License
 -------
