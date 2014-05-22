@@ -2,14 +2,23 @@ require "find"
 
 module TaskList
   class Parser
-    attr_reader :files, :tasks
+    attr_reader :files, :tasks, :search_path
 
     def initialize(arguments: [], options: {})
+      self.search_path = options[:search_path]
       @plain = options[:plain] if options[:plain]
       @type = options[:type].upcase if options[:type]
       @files = fuzzy_find_files queries: arguments
       @tasks = {}
       VALID_TASKS.each { |t| @tasks[t.to_sym] = [] }
+    end
+
+    def search_path=(value)
+      if value.nil? || value.empty?
+        @search_path = "."
+      else
+        @search_path = value
+      end
     end
 
     # Parse all the collected files to find tasks
@@ -52,8 +61,7 @@ module TaskList
       patterns = regexify queries
 
       paths = []
-      # FIXME: Search in the root of a project if in a git repo
-      Find.find('.') do |path|
+      Find.find(self.search_path) do |path|
         paths << path unless FileTest.directory?(path)
       end
 

@@ -12,6 +12,10 @@ OptionParser.new do |opts|
     options[:plain] = true
   end
 
+  opts.on("-d", "--directory DIRECTORY", "Specify the directory to search (default to cwd)") do |o|
+    options[:search_path] = o
+  end
+
   opts.on("-t", "--type", "Type of tasks to list") do |o|
     options[:type] = o
   end
